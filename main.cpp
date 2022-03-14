@@ -113,12 +113,14 @@ void efficient_routine()
     int x, y, k;
     const unsigned short int total = 235;
 
+    //Merging problem probs due to x_image dependency/dependencies
     /*  Part A */
     //x dimension of image (n = absolute horizontal size)
     for (x = 0; x < N; x++)
         for (y = 0; y < M; y++)
             if (y >= 1 && y <= M - 2 && x >= 1 && x <= N - 2) {
                 x_compute[x][y][0] = 0;
+                xy_compute[x][y][0] = 0; //Merged code
 
                 //Unrolled loop
                 /*x_compute[x][y][1] = x_compute[x][y][0] + input[x + -1][y] * 68;
@@ -127,13 +129,37 @@ void efficient_routine()
 
                 //Original loop
                 for (k = -1; k <= 1; k++)
+                {
                     x_compute[x][y][k + 2] = x_compute[x][y][k + 1] + input[x + k][y] * Filter[abs(k)];
-                
+                    xy_compute[x][y][k + 2] = xy_compute[x][y][k + 1] + x_image[x][y + k] * Filter[abs(k)]; //Merged code
+                }
                 x_image[x][y] = x_compute[x][y][3] / 235;
+                xy_image[x][y] = xy_compute[x][y][3] / total; //Merged code
+
+                //Second Degree Merged code vv
+                /*xy_compute[x][y][0] = 0;
+                for (k = -1; k <= 1; k++)
+                    xy_compute[x][y][k + 2] = xy_compute[x][y][k + 1] + x_image[x][y + k] * Filter[abs(k)];
+
+                xy_image[x][y] = xy_compute[x][y][3] / total;*/
+                //Merged code ^^
             }
             else //this is for image border pixels only
                 x_image[x][y] = 0;
+                xy_image[x][y] = 0; //Merged code
+            
+            //First Degree Merged code (breaks)
+            /*if (y >= 1 && y <= M - 2 && x >= 1 && x <= N - 2) {
+                xy_compute[x][y][0] = 0;
+                for (k = -1; k <= 1; k++)
+                    xy_compute[x][y][k + 2] = xy_compute[x][y][k + 1] + x_image[x][y + k] * Filter[abs(k)];
 
+                xy_image[x][y] = xy_compute[x][y][3] / total;
+            }
+            else
+                xy_image[x][y] = 0;*/
+
+    /*Unmerged code
     for (x = 0; x < N; x++)
         for (y = 0; y < M; y++)
             if (y >= 1 && y <= M - 2 && x >= 1 && x <= N - 2) {
@@ -144,7 +170,7 @@ void efficient_routine()
                 xy_image[x][y] = xy_compute[x][y][3] / total;
             }
             else
-                xy_image[x][y] = 0;
+                xy_image[x][y] = 0;*/
 
     /*  Part B */
     for (x = 0; x < N; x++)
